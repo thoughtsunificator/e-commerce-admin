@@ -1,0 +1,34 @@
+name: Build and push to another branch
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build and Push
+    steps:
+      - name: git-checkout
+        uses: actions/checkout@v2
+
+      - name: Install all dependencies
+        run: npm ci
+
+      - name: Build
+        run: NODE_OPTIONS=--openssl-legacy-provider REACT_APP_ENABLE_REACT_HASH_ROUTER=$REACT_APP_ENABLE_REACT_HASH_ROUTER REACT_APP_PUBLIC_URL=$REACT_APP_PUBLIC_URL REACT_APP_API_ENTRYPOINT=$REACT_APP_API_ENTRYPOINT REACT_APP_API_URL=$REACT_APP_API_URL PUBLIC_URL=$PUBLIC_URL CI=false npm run build
+        env:
+          REACT_APP_API_ENTRYPOINT: ${{ vars.REACT_APP_API_ENTRYPOINT }}
+          REACT_APP_PUBLIC_URL: ${{ vars.REACT_APP_PUBLIC_URL }}
+          REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
+          REACT_APP_ENABLE_REACT_HASH_ROUTER: ${{ vars.REACT_APP_ENABLE_REACT_HASH_ROUTER }}
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+
+      - name: Push
+        uses: s0/git-publish-subdir-action@develop
+        env:
+          REPO: self
+          BRANCH: gh-pages
+          FOLDER: build
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
